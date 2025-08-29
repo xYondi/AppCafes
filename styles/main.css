@@ -1,0 +1,203 @@
+/* Paleta de colores refinada para mejor contraste y estética */
+:root {
+    --bg-base: #1A202C;       /* Slate 900 */
+    --bg-surface: #42210B;    /* Un tono de cafe oscuro */
+    --text-primary: #FFFFFF;   /* Blanco puro */
+    --text-secondary: #A0AEC0; /* Gray 400 - Ahora para el texto de fondo oscuro */
+    --inactive-text: #4B5563; /* Gray 600 - Mejor contraste en fondo blanco */
+    --accent-brown: #7B3F00;     /* Marrón de acento */
+    --active-brown: #42210B; /* Color café oscuro para el icono y texto activo */
+    --navbar-bg: #FFFFFF; /* Fondo blanco para la barra de navegacion */
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-base);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Estilos del marco del Pixel 8 Pro */
+.pixel-frame {
+    height: 850px;
+    aspect-ratio: 9/19.5; /* Proporción de un Pixel 8 Pro */
+    background-color: var(--bg-base);
+    border-radius: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 8px solid #000;
+}
+
+/* Estilos para la cámara frontal (actualizada para ser más visible) */
+.camera-notch {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background-color: #555;
+    border-radius: 50%;
+    border: 1px solid #444;
+    z-index: 60;
+}
+
+/* Estilo específico para la píldora de navegación */
+.nav-pill {
+    background-color: rgba(0, 0, 0, 0.05); /* Píldora translúcida sobre fondo blanco */
+    border-radius: 9999px;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transform: scale(1.0);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Estilos para los marcadores en el mapa */
+.map-marker {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.map-marker:hover {
+    transform: scale(1.2);
+}
+
+/* Estilo para los botones de filtro horizontales */
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.2s ease;
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    cursor: pointer;
+}
+
+.filter-pill:hover {
+    background-color: var(--accent-brown);
+}
+
+/* Estilos para las listas personalizadas */
+.list-card {
+    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--accent-brown) 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.list-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(20px, -20px);
+}
+
+/* Estilos para los switches de configuración */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--accent-brown);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Estilos para las tarjetas de configuración */
+.config-card {
+    background-color: var(--bg-surface);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--accent-brown);
+}
+
+/* Estilos para las pantallas */
+.screen {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Estilos para el modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--bg-surface);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    width: 20rem;
+    max-width: 90vw;
+    margin: 0 1rem;
+} 
