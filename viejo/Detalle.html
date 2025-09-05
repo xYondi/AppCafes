@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeNav - Detalle de Cafetería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Paleta de colores refinada para mejor contraste y estética */
+        :root {
+            --bg-base: #1A202C;       /* Slate 900 */
+            --bg-surface: #42210B;    /* Un tono de cafe oscuro */
+            --text-primary: #FFFFFF;   /* Blanco puro */
+            --text-secondary: #A0AEC0; /* Gray 400 - Ahora para el texto de fondo oscuro */
+            --inactive-text: #4B5563; /* Gray 600 - Mejor contraste en fondo blanco */
+            --accent-brown: #7B3F00;     /* Marrón de acento */
+            --active-brown: #42210B; /* Color café oscuro para el icono y texto activo */
+            --navbar-bg: #FFFFFF; /* Fondo blanco para la barra de navegacion */
+            --beige: #F5F5DC;         /* Beige suave */
+            --accent-blue: #3B82F6;    /* Azul de acento */
+            --dark-gray: #374151;     /* Gris oscuro */
+            --yellow-star: #FBBF24;   /* Amarillo para estrellas */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Estilos del marco del Pixel 8 Pro */
+        .pixel-frame {
+            height: 850px;
+            aspect-ratio: 9/19.5; /* Proporción de un Pixel 8 Pro */
+            background-color: var(--bg-base);
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 8px solid #000;
+        }
+
+        /* Estilos para la cámara frontal */
+        .camera-notch {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background-color: #555;
+            border-radius: 50%;
+            border: 1px solid #444;
+            z-index: 60;
+        }
+
+        /* Estilo específico para la píldora de navegación */
+        .nav-pill {
+            background-color: rgba(0, 0, 0, 0.05); /* Píldora translúcida sobre fondo blanco */
+            border-radius: 9999px;
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transform: scale(1.0);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Estilos para las estrellas */
+        .star-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .star {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            stroke: var(--yellow-star);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .star.filled {
+            fill: var(--yellow-star);
+        }
+
+        .review-stars {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .review-star {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            stroke: var(--yellow-star);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .review-star.filled {
+            fill: var(--yellow-star);
+        }
+
+        /* Estilos para los tags */
+        .tag {
+            background-color: var(--dark-gray);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        /* Estilos para los iconos de características */
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* Estilos para los botones de iconos minimalistas */
+        .minimal-icon-btn {
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .minimal-icon-btn:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .minimal-icon-btn:active {
+            transform: scale(0.95) translateY(-2px);
+        }
+
+        .app-call-btn:hover {
+            background-color: var(--active-brown) !important;
+        }
+
+        .app-directions-btn:hover {
+            background-color: var(--accent-brown) !important;
+        }
+
+        /* Animación de pulso sutil para los indicadores */
+        @keyframes subtle-pulse {
+            0%, 100% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        .minimal-icon-btn .animate-ping {
+            animation: subtle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Estilos para la galería de imágenes */
+        .gallery-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            cursor: pointer;
+            opacity: 0.8;
+            background-color: var(--bg-surface);
+        }
+
+        .gallery-image:hover {
+            transform: scale(1.05);
+        }
+
+        .gallery-image[loaded] {
+            opacity: 1;
+        }
+
+        /* Asegurar que las imágenes de galería se carguen correctamente */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        /* Estilos para las reseñas */
+        .review-card {
+            background-color: var(--bg-surface);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4">
+
+    <!-- Marco del dispositivo móvil, simulando un Pixel 8 Pro -->
+    <div class="w-full max-w-sm pixel-frame text-[var(--text-primary)] overflow-hidden relative flex flex-col">
+
+        <!-- Cámara frontal -->
+        <div class="camera-notch"></div>
+
+        <!-- Barra de estado de Android -->
+        <div class="w-full h-8 flex justify-between items-center px-6 text-xs text-[var(--text-secondary)] pointer-events-auto z-50">
+            <span>9:41</span>
+            <div class="flex items-center space-x-1">
+                <!-- Icono de Wi-Fi -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s5-4.5 5-9.5a5 5 0 00-10 0c0 5 5 9.5 5 9.5z"/><path d="M12 11.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+                <!-- Icono de Batería -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"/><path d="M23 13.5v-3"/></svg>
+                <span>75%</span>
+            </div>
+        </div>
+
+        <!-- Contenedor principal -->
+        <div id="main-content" class="flex-grow flex flex-col relative overflow-hidden">
+
+            <!-- Vista de detalle de cafetería -->
+            <div id="detailView" class="absolute inset-0 w-full h-full flex flex-col overflow-y-auto no-scrollbar">
+
+                <!-- Header con botón de vuelta -->
+                <header class="w-full flex items-center justify-between p-4 pt-6">
+                    <button onclick="goBack()" class="w-10 h-10 rounded-full bg-[var(--bg-surface)] flex items-center justify-center focus:outline-none">
+                        <svg class="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleFavorite()" id="favoriteBtn" class="w-10 h-10 rounded-full bg-[var(--bg-surface)] flex items-center justify-center focus:outline-none">
+                            <svg id="favoriteIcon" class="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </button>
+                        <button onclick="shareCafe()" class="w-10 h-10 rounded-full bg-[var(--bg-surface)] flex items-center justify-center focus:outline-none">
+                            <svg class="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Imagen principal -->
+                <div class="px-4 mb-4">
+                    <img id="mainImage" src="" alt="Cafetería" class="w-full h-48 object-cover rounded-2xl">
+                </div>
+
+                <!-- Información básica con botones -->
+                <div class="px-4 mb-6">
+                    <div class="mb-3">
+                        <!-- Título con botones a la derecha -->
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex-1">
+                                <h1 id="cafeName" class="text-2xl font-bold text-[var(--text-primary)]"></h1>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <button onclick="callCafe()" class="minimal-icon-btn app-call-btn w-10 h-10 rounded-full bg-[var(--accent-brown)] hover:bg-[var(--active-brown)] flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-xl group relative">
+                                    <svg class="w-5 h-5 text-[var(--text-primary)] group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                    </svg>
+                                    <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[var(--active-brown)] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 animate-ping"></div>
+                                    <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[var(--active-brown)] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                                </button>
+                                <button onclick="getDirections()" class="minimal-icon-btn app-directions-btn w-10 h-10 rounded-full bg-[var(--active-brown)] hover:bg-[var(--accent-brown)] flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-xl group relative">
+                                    <svg class="w-5 h-5 text-[var(--text-primary)] group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[var(--accent-brown)] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 animate-ping"></div>
+                                    <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[var(--accent-brown)] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="cafeRating" class="star-rating mb-2">
+                            <!-- Las estrellas se generan dinámicamente -->
+                        </div>
+                        <p id="cafeDescription" class="text-sm text-[var(--text-secondary)]"></p>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-4">
+                            <span id="cafeStatus" class="tag"></span>
+                            <span id="cafeDistance" class="text-sm text-[var(--text-secondary)]"></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3C7.02 3 3 7.02 3 12h3c0-3.31 2.69-6 6-6s6 2.69 6 6h3c0-4.98-4.02-9-9-9zm0 6c-1.66 0-3 1.34-3 3h3c0-1.66 1.34-3 3-3s3 1.34 3 3h3c0-3.31-2.69-6-6-6zm0 4.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
+                            </svg>
+                            <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.88 16.49c-1.16-.92-2.17-2.17-2.91-3.66l1.37-.62c.63 1.25 1.49 2.29 2.45 3.03l-.91 1.25zm4.72-2.27l-1.37.62c-.63-1.25-1.49-2.29-2.45-3.03l.91-1.25c1.16.92 2.17 2.17 2.91 3.66zM15.42 12.5a.75.75 0 01-.75-.75.75.75 0 01.75-.75.75.75 0 01.75.75.75.75 0 01-.75.75zM8.58 12.5a.75.75 0 01-.75-.75.75.75 0 01.75-.75.75.75 0 01.75.75.75.75 0 01-.75.75zM12 17.5a.75.75 0 01-.75-.75.75.75 0 01.75-.75.75.75 0 01.75.75.75.75 0 01-.75.75z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <!-- Secciones adicionales -->
+                <div class="px-4 mb-6">
+                    <h2 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Información</h2>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-[var(--text-primary)]">Horario</p>
+                                <p id="cafeHours" class="text-sm text-[var(--text-secondary)]"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-[var(--text-primary)]">Dirección</p>
+                                <p id="cafeAddress" class="text-sm text-[var(--text-secondary)]"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-[var(--text-primary)]">Teléfono</p>
+                                <p id="cafePhone" class="text-sm text-[var(--text-secondary)]"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Galería de imágenes -->
+                <div class="px-4 mb-6">
+                    <h2 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Galería</h2>
+                    <div class="gallery-grid">
+                        <img id="gallery1" src="" alt="Foto 1" class="gallery-image" loading="lazy">
+                        <img id="gallery2" src="" alt="Foto 2" class="gallery-image" loading="lazy">
+                        <img id="gallery3" src="" alt="Foto 3" class="gallery-image" loading="lazy">
+                    </div>
+                </div>
+
+                <!-- Reseñas -->
+                <div class="px-4 mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Reseñas</h2>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openWriteReview()" class="group inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-white/5 hover:bg-white/10 text-[var(--text-primary)] text-sm font-medium transition-colors duration-200" aria-label="Escribir reseña">
+                                <svg class="w-4 h-4 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                <span>Escribir reseña</span>
+                            </button>
+                            <button onclick="showAllReviews()" class="text-sm font-semibold text-white hover:text-[var(--accent-brown)] transition-colors duration-200 flex items-center space-x-1">
+                                <span>Ver todas</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Escribir reseña (panel minimalista) -->
+                    <div id="writeReviewCard" class="px-0 mb-4 hidden">
+                        <div class="bg-[var(--bg-surface)] rounded-2xl p-4 border border-white/10">
+                            <div class="mb-3">
+                                <p class="text-sm text-[var(--text-secondary)] mb-2">Tu calificación</p>
+                                <div id="writeReviewStars" class="flex items-center gap-2">
+                                    <svg data-value="1" onclick="setWriteReviewRating(1)" class="w-6 h-6 cursor-pointer text-yellow-400/30" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg data-value="2" onclick="setWriteReviewRating(2)" class="w-6 h-6 cursor-pointer text-yellow-400/30" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg data-value="3" onclick="setWriteReviewRating(3)" class="w-6 h-6 cursor-pointer text-yellow-400/30" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg data-value="4" onclick="setWriteReviewRating(4)" class="w-6 h-6 cursor-pointer text-yellow-400/30" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <svg data-value="5" onclick="setWriteReviewRating(5)" class="w-6 h-6 cursor-pointer text-yellow-400/30" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <textarea id="writeReviewText" rows="4" class="w-full bg-transparent border border-white/20 rounded-xl p-3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-brown)]" placeholder="Cuéntanos tu experiencia..."></textarea>
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button onclick="cancelWriteReview()" class="px-4 py-2 rounded-full bg-white/10 text-[var(--text-primary)]">Cancelar</button>
+                                <button onclick="submitWriteReview()" class="px-4 py-2 rounded-full bg-[var(--accent-brown)] hover:bg-[var(--active-brown)] text-[var(--text-primary)]">Publicar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="reviewsContainer" class="space-y-3">
+                        <!-- Las reseñas se generan dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Navegación -->
+        <footer class="w-full p-2 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.1)] rounded-t-3xl">
+            <nav class="flex justify-around items-center h-16">
+                <!-- Ítem: Inicio -->
+                <a href="Inicio.html" onclick="goHome()" class="flex flex-col items-center justify-center space-y-1 text-gray-600 hover:text-gray-900 transition-colors duration-200 p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span class="text-xs font-medium">Inicio</span>
+                </a>
+
+                <!-- Ítem inactivo: Favoritos -->
+                <a href="Favoritos.html" class="flex flex-col items-center justify-center space-y-1 text-gray-600 hover:text-gray-900 transition-colors duration-200 p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span class="text-xs font-medium">Favoritos</span>
+                </a>
+
+                <!-- Ítem: Configuración -->
+                <a href="Mas.html" class="flex flex-col items-center justify-center space-y-1 text-gray-600 hover:text-[var(--accent-brown)] transition-colors duration-200 p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs font-medium">Configuración</span>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        // Datos de las cafeterías (en una aplicación real vendrían de una API)
+        const cafes = {
+            'el-rincon-del-cafe': {
+                name: 'El Rincón del Café',
+                description: 'Acogedor y perfecto para trabajar. Especialistas en café de especialidad y ambiente tranquilo.',
+                rating: 4.9,
+                status: 'Abierto',
+                distance: '1.5 km',
+                image: 'https://picsum.photos/id/1083/400/200',
+                gallery: [
+                    'https://picsum.photos/id/1083/400/200',
+                    'https://picsum.photos/id/1084/400/200',
+                    'https://picsum.photos/id/1085/400/200'
+                ],
+                hours: 'Lun-Dom: 7:00 AM - 8:00 PM',
+                address: 'Av. Principal 123, Ciudad Centro',
+                phone: '+58 212 123-4567',
+                reviews: [
+                    {
+                        user: 'María González',
+                        rating: 5,
+                        comment: 'Excelente café y ambiente perfecto para trabajar. Los lattes son increíbles.',
+                        date: 'Hace 2 días'
+                    },
+                    {
+                        user: 'Carlos Rodríguez',
+                        rating: 4,
+                        comment: 'Buen lugar, el WiFi es rápido y tienen enchufes disponibles.',
+                        date: 'Hace 1 semana'
+                    },
+                    {
+                        user: 'Ana López',
+                        rating: 5,
+                        comment: 'Me encanta este lugar. El personal es muy amable y el café delicioso.',
+                        date: 'Hace 2 semanas'
+                    }
+                ]
+            },
+            'la-molienda': {
+                name: 'La Molienda',
+                description: 'Café de especialidad y postres exquisitos. Ambiente moderno con toques tradicionales.',
+                rating: 4.7,
+                status: 'Cerrando pronto',
+                distance: '1.1 km',
+                image: 'https://picsum.photos/id/119/400/200',
+                gallery: [
+                    'https://picsum.photos/id/119/400/200',
+                    'https://picsum.photos/id/120/400/200',
+                    'https://picsum.photos/id/121/400/200'
+                ],
+                hours: 'Lun-Dom: 8:00 AM - 7:00 PM',
+                address: 'Calle Bolívar 456, Centro Histórico',
+                phone: '+58 212 987-6543',
+                reviews: [
+                    {
+                        user: 'José Martínez',
+                        rating: 5,
+                        comment: 'Los postres son espectaculares. El cheesecake de café es mi favorito.',
+                        date: 'Hace 3 días'
+                    },
+                    {
+                        user: 'Laura Pérez',
+                        rating: 4,
+                        comment: 'Muy buen café, pero un poco ruidoso cuando está lleno.',
+                        date: 'Hace 5 días'
+                    },
+                    {
+                        user: 'Pedro Sánchez',
+                        rating: 5,
+                        comment: 'Excelente servicio y variedad de cafés. Altamente recomendado.',
+                        date: 'Hace 1 semana'
+                    }
+                ]
+            }
+        };
+
+        // Estado de la aplicación
+        let currentCafe = null;
+        let isFavorite = false;
+
+        // Función para obtener el ID de la cafetería desde la URL
+        function getCafeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cafeId = urlParams.get('cafe');
+
+            if (cafeId && cafes[cafeId]) {
+                return cafes[cafeId];
+            }
+
+            // Si no hay parámetro en URL, intentar desde localStorage
+            const storedCafe = localStorage.getItem('selectedCafe');
+            if (storedCafe && cafes[storedCafe]) {
+                return cafes[storedCafe];
+            }
+
+            // Por defecto, mostrar la primera cafetería
+            return cafes['el-rincon-del-cafe'];
+        }
+
+        // Función para generar estrellas principales
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            let starsHTML = '';
+
+            // Generar estrellas llenas
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<svg class="star filled" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+            }
+
+            // Completar con estrellas vacías hasta 5
+            const emptyStars = 5 - fullStars;
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<svg class="star" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+            }
+
+            return starsHTML + `<span class="ml-2 text-base font-semibold text-[var(--text-primary)]">${rating}</span>`;
+        }
+
+        // Función para generar estrellas pequeñas para reseñas
+        function generateReviewStars(rating) {
+            const fullStars = Math.floor(rating);
+            let starsHTML = '';
+
+            // Generar estrellas llenas
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<svg class="review-star filled" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+            }
+
+            // Completar con estrellas vacías hasta 5
+            const emptyStars = 5 - fullStars;
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<svg class="review-star" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+            }
+
+            return starsHTML;
+        }
+
+        // Función para generar reseñas
+        function generateReviews(reviews) {
+            return reviews.slice(0, 2).map(review => `
+                <div class="review-card">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-[var(--text-primary)]">${review.user}</span>
+                        <div class="review-stars">
+                            ${generateReviewStars(review.rating)}
+                        </div>
+                    </div>
+                    <p class="text-sm text-[var(--text-secondary)] mb-2">${review.comment}</p>
+                    <span class="text-xs text-[var(--text-secondary)]">${review.date}</span>
+                </div>
+            `).join('');
+        }
+
+        // Función para cargar los datos de la cafetería
+        function loadCafeData(cafe) {
+            currentCafe = cafe;
+
+            // Información básica
+            document.getElementById('mainImage').src = cafe.image;
+            document.getElementById('cafeName').textContent = cafe.name;
+            document.getElementById('cafeDescription').textContent = cafe.description;
+            document.getElementById('cafeRating').innerHTML = generateStars(cafe.rating);
+            document.getElementById('cafeStatus').textContent = cafe.status;
+            document.getElementById('cafeDistance').textContent = cafe.distance;
+
+            // Información adicional
+            document.getElementById('cafeHours').textContent = cafe.hours;
+            document.getElementById('cafeAddress').textContent = cafe.address;
+            document.getElementById('cafePhone').textContent = cafe.phone;
+
+            // Galería - Asignar imágenes con manejo de errores
+            const galleryImages = [
+                { id: 'gallery1', src: cafe.gallery[0] },
+                { id: 'gallery2', src: cafe.gallery[1] },
+                { id: 'gallery3', src: cafe.gallery[2] }
+            ];
+
+            galleryImages.forEach((img, index) => {
+                const imgElement = document.getElementById(img.id);
+                imgElement.src = img.src;
+                imgElement.alt = `Foto ${index + 1} de ${cafe.name}`;
+
+                // Manejo de errores de carga de imagen
+                imgElement.onerror = function() {
+                    this.src = 'https://via.placeholder.com/400x200/42210B/FFFFFF?text=Imagen+no+disponible';
+                    this.alt = 'Imagen no disponible';
+                };
+
+                // Asegurar que la imagen se cargue correctamente
+                imgElement.onload = function() {
+                    this.style.opacity = '1';
+                    this.setAttribute('loaded', 'true');
+                };
+            });
+
+            // Reseñas
+            document.getElementById('reviewsContainer').innerHTML = generateReviews(cafe.reviews);
+
+            // Verificar si está en favoritos
+            checkFavoriteStatus();
+        }
+
+        // Función para verificar estado de favoritos
+        function checkFavoriteStatus() {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const cafeId = getCurrentCafeId();
+            isFavorite = favorites.includes(cafeId);
+
+            const favoriteIcon = document.getElementById('favoriteIcon');
+            if (isFavorite) {
+                favoriteIcon.setAttribute('fill', 'currentColor');
+                favoriteIcon.classList.add('text-red-500');
+            } else {
+                favoriteIcon.setAttribute('fill', 'none');
+                favoriteIcon.classList.remove('text-red-500');
+            }
+        }
+
+        // Función para obtener el ID actual de la cafetería
+        function getCurrentCafeId() {
+            for (const [id, cafe] of Object.entries(cafes)) {
+                if (cafe.name === currentCafe.name) {
+                    return id;
+                }
+            }
+            return 'el-rincon-del-cafe';
+        }
+
+        // Funciones de navegación
+        function goBack() {
+            window.location.href = 'Inicio.html';
+        }
+
+        function goHome() {
+            window.location.href = 'Inicio.html';
+        }
+
+        function goFavorites() {
+            // Aquí iría la navegación a la pantalla de favoritos
+            alert('Navegando a Favoritos...');
+        }
+
+        // Funciones de acción
+        function toggleFavorite() {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const cafeId = getCurrentCafeId();
+
+            if (isFavorite) {
+                // Remover de favoritos
+                const index = favorites.indexOf(cafeId);
+                if (index > -1) {
+                    favorites.splice(index, 1);
+                }
+                isFavorite = false;
+            } else {
+                // Agregar a favoritos
+                favorites.push(cafeId);
+                isFavorite = true;
+            }
+
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            checkFavoriteStatus();
+        }
+
+        function callCafe() {
+            if (currentCafe && currentCafe.phone) {
+                window.location.href = `tel:${currentCafe.phone}`;
+            }
+        }
+
+        function getDirections() {
+            if (currentCafe && currentCafe.address) {
+                // En una aplicación real, aquí se integraría con Google Maps o similar
+                alert(`Obteniendo direcciones a: ${currentCafe.address}`);
+            }
+        }
+
+        function shareCafe() {
+            if (currentCafe) {
+                if (navigator.share) {
+                    navigator.share({
+                        title: currentCafe.name,
+                        text: currentCafe.description,
+                        url: window.location.href
+                    });
+                } else {
+                    // Fallback para navegadores que no soportan Web Share API
+                    const text = `¡Mira este café! ${currentCafe.name} - ${currentCafe.description}`;
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert('Información copiada al portapapeles');
+                    });
+                }
+            }
+        }
+
+        function showAllReviews() {
+            if (currentCafe) {
+                // En una aplicación real, aquí se mostraría un modal o navegaría a una pantalla de reseñas
+                alert(`Mostrando todas las reseñas de ${currentCafe.name}`);
+            }
+        }
+
+        // UI mejorada para escribir reseña
+        let writeReviewRating = 0;
+
+        function openWriteReview() {
+            const card = document.getElementById('writeReviewCard');
+            if (card) {
+                card.classList.remove('hidden');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function cancelWriteReview() {
+            const card = document.getElementById('writeReviewCard');
+            const textarea = document.getElementById('writeReviewText');
+            if (textarea) textarea.value = '';
+            writeReviewRating = 0;
+            updateWriteReviewStars();
+            if (card) card.classList.add('hidden');
+        }
+
+        function setWriteReviewRating(value) {
+            writeReviewRating = value;
+            updateWriteReviewStars();
+        }
+
+        function updateWriteReviewStars() {
+            const stars = document.querySelectorAll('#writeReviewStars svg');
+            stars.forEach((star) => {
+                const val = Number(star.getAttribute('data-value'));
+                if (val <= writeReviewRating) {
+                    star.classList.remove('text-yellow-400/30');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.add('text-yellow-400/30');
+                    star.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
+        function submitWriteReview() {
+            const textarea = document.getElementById('writeReviewText');
+            const text = textarea ? textarea.value.trim() : '';
+            if (!currentCafe) return;
+            if (!writeReviewRating) {
+                alert('Por favor selecciona una calificación.');
+                return;
+            }
+            if (!text) {
+                alert('Por favor escribe un comentario.');
+                return;
+            }
+            // Aquí se enviaría al backend; por ahora, añadimos a la lista local
+            const newReview = {
+                user: 'Tú',
+                rating: writeReviewRating,
+                comment: text,
+                date: 'Ahora'
+            };
+            if (!currentCafe.reviews) currentCafe.reviews = [];
+            currentCafe.reviews.unshift(newReview);
+            document.getElementById('reviewsContainer').innerHTML = generateReviews(currentCafe.reviews);
+            cancelWriteReview();
+            alert('¡Gracias! Tu reseña ha sido publicada.');
+        }
+
+        // Función para cambiar a la vista de mapa
+        function showMapView() {
+            window.location.href = 'Mapa.html';
+        }
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            const cafe = getCafeFromURL();
+            loadCafeData(cafe);
+        });
+
+        // Función para manejar cambios en localStorage (útil si se actualizan favoritos desde otra pestaña)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'favorites') {
+                checkFavoriteStatus();
+            }
+        });
+
+
+    </script>
+
+
+
+</body>
+</html>

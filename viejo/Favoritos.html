@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeNav - Favoritos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Paleta de colores refinada para mejor contraste y estética */
+        :root {
+            --bg-base: #1A202C;       /* Slate 900 */
+            --bg-surface: #42210B;    /* Un tono de cafe oscuro */
+            --text-primary: #FFFFFF;   /* Blanco puro */
+            --text-secondary: #A0AEC0; /* Gray 400 - Ahora para el texto de fondo oscuro */
+            --inactive-text: #4B5563; /* Gray 600 - Mejor contraste en fondo blanco */
+            --accent-brown: #7B3F00;     /* Marrón de acento */
+            --active-brown: #42210B; /* Color café oscuro para el icono y texto activo */
+            --navbar-bg: #FFFFFF; /* Fondo blanco para la barra de navegacion */
+            --beige: #F5F5DC;         /* Beige suave */
+            --accent-blue: #3B82F6;    /* Azul de acento */
+            --dark-gray: #374151;     /* Gris oscuro */
+            --yellow-star: #FBBF24;   /* Amarillo para estrellas */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Estilos del marco del Pixel 8 Pro */
+        .pixel-frame {
+            height: 850px;
+            aspect-ratio: 9/19.5; /* Proporción de un Pixel 8 Pro */
+            background-color: var(--bg-base);
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 8px solid #000;
+        }
+
+        /* Estilos para la cámara frontal */
+        .camera-notch {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background-color: #555;
+            border-radius: 50%;
+            border: 1px solid #444;
+            z-index: 60;
+        }
+
+        /* Estilo específico para la píldora de navegación */
+        .nav-pill {
+            background-color: rgba(0, 0, 0, 0.05); /* Píldora translúcida sobre fondo blanco */
+            border-radius: 9999px;
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transform: scale(1.0);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Estilos para la galería de imágenes */
+        .gallery-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            cursor: pointer;
+            opacity: 0.8;
+            background-color: var(--bg-surface);
+        }
+
+        .gallery-image:hover {
+            transform: scale(1.05);
+        }
+
+        .gallery-image[loaded] {
+            opacity: 1;
+        }
+
+        /* Asegurar que las imágenes de galería se carguen correctamente */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        /* Estilos para las reseñas */
+        .review-card {
+            background-color: var(--bg-surface);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Estilos para los tags */
+        .tag {
+            background-color: var(--dark-gray);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        /* Estilos para los iconos de características */
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* Estilos para los botones de iconos minimalistas */
+        .minimal-icon-btn {
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .minimal-icon-btn:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .minimal-icon-btn:active {
+            transform: scale(0.95) translateY(-2px);
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4">
+
+    <!-- Marco del dispositivo móvil, simulando un Pixel 8 Pro -->
+    <div class="w-full max-w-sm pixel-frame text-[var(--text-primary)] overflow-hidden relative flex flex-col">
+
+        <!-- Cámara frontal -->
+        <div class="camera-notch"></div>
+
+        <!-- Barra de estado de Android -->
+        <div class="w-full h-8 flex justify-between items-center px-6 text-xs text-[var(--text-secondary)] pointer-events-auto z-50">
+            <span>9:41</span>
+            <div class="flex items-center space-x-1">
+                <!-- Icono de Wi-Fi -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s5-4.5 5-9.5a5 5 0 00-10 0c0 5 5 9.5 5 9.5z"/><path d="M12 11.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+                <!-- Icono de Batería -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"/><path d="M23 13.5v-3"/></svg>
+                <span>75%</span>
+            </div>
+        </div>
+
+        <!-- Contenedor principal -->
+        <div id="main-content" class="flex-grow flex flex-col relative overflow-hidden">
+
+            <!-- Vista de Favoritos -->
+            <div id="favoritesView" class="absolute inset-0 w-full h-full flex flex-col overflow-y-auto no-scrollbar">
+
+                <!-- Encabezado -->
+                <header class="w-full flex justify-between items-center p-6 pt-8">
+                    <div class="text-left">
+                        <h1 class="text-3xl font-bold text-[var(--text-primary)]">Favoritos</h1>
+                        <p class="text-sm text-[var(--text-secondary)] mt-1">Tus cafés preferidos</p>
+                    </div>
+                    <!-- Botón para ordenar -->
+                    <button onclick="toggleSortOptions()" class="w-10 h-10 rounded-full bg-[var(--bg-surface)] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-surface)] focus:ring-[var(--accent-brown)]">
+                        <svg class="w-6 h-6 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                        </svg>
+                    </button>
+                </header>
+
+                <!-- Contenido principal -->
+                <div class="px-6 pb-8">
+
+                    <!-- Estado vacío (se muestra cuando no hay favoritos) -->
+                    <div id="emptyState" class="text-center py-16 hidden">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-[var(--beige)] flex items-center justify-center">
+                            <svg class="w-12 h-12 text-[var(--accent-brown)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-[var(--text-primary)] mb-2">No tienes favoritos aún</h2>
+                        <p class="text-sm text-[var(--text-secondary)] mb-6">Agrega cafés a tus favoritos para encontrarlos fácilmente</p>
+                        <button onclick="goToInicio()" class="px-6 py-3 bg-[var(--accent-brown)] text-white rounded-full font-medium hover:bg-[var(--active-brown)] transition-colors duration-200">
+                            Explorar cafés
+                        </button>
+                    </div>
+
+                    <!-- Lista de favoritos -->
+                    <div id="favoritesList" class="space-y-6">
+                        <!-- Los favoritos se cargarán dinámicamente aquí -->
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Navegación -->
+        <footer class="w-full p-2 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.1)] rounded-t-3xl">
+            <nav class="flex justify-around items-center h-16">
+                <!-- Ítem: Inicio -->
+                <a href="Inicio.html" class="flex flex-col items-center justify-center space-y-1 text-gray-600 hover:text-gray-900 transition-colors duration-200 p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span class="text-xs font-medium">Inicio</span>
+                </a>
+
+                <!-- Ítem activo: Favoritos -->
+                <a href="#" class="nav-pill">
+                    <svg class="w-6 h-6 text-[var(--active-brown)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span class="text-xs font-bold text-[var(--active-brown)]">Favoritos</span>
+                </a>
+
+                <!-- Ítem: Configuración -->
+                <a href="Mas.html" class="flex flex-col items-center justify-center space-y-1 text-gray-600 hover:text-[var(--accent-brown)] transition-colors duration-200 p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-xs font-medium">Configuración</span>
+                </a>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        // Datos de las cafeterías (igual que en otras páginas)
+        const cafes = {
+            'el-rincon-del-cafe': {
+                name: 'El Rincón del Café',
+                description: 'Acogedor y perfecto para trabajar. Especialistas en café de especialidad y ambiente tranquilo.',
+                rating: 4.9,
+                status: 'Abierto',
+                distance: '1.5 km',
+                image: 'https://picsum.photos/id/1083/400/200',
+                gallery: [
+                    'https://picsum.photos/id/1083/400/200',
+                    'https://picsum.photos/id/1084/400/200',
+                    'https://picsum.photos/id/1085/400/200'
+                ],
+                hours: 'Lun-Dom: 7:00 AM - 8:00 PM',
+                address: 'Av. Principal 123, Ciudad Centro',
+                phone: '+58 212 123-4567',
+                reviews: [
+                    {
+                        user: 'María González',
+                        rating: 5,
+                        comment: 'Excelente café y ambiente perfecto para trabajar. Los lattes son increíbles.',
+                        date: 'Hace 2 días'
+                    },
+                    {
+                        user: 'Carlos Rodríguez',
+                        rating: 4,
+                        comment: 'Buen lugar, el WiFi es rápido y tienen enchufes disponibles.',
+                        date: 'Hace 1 semana'
+                    }
+                ]
+            },
+            'la-molienda': {
+                name: 'La Molienda',
+                description: 'Café de especialidad y postres exquisitos. Ambiente moderno con toques tradicionales.',
+                rating: 4.7,
+                status: 'Cerrando pronto',
+                distance: '1.1 km',
+                image: 'https://picsum.photos/id/119/400/200',
+                gallery: [
+                    'https://picsum.photos/id/119/400/200',
+                    'https://picsum.photos/id/120/400/200',
+                    'https://picsum.photos/id/121/400/200'
+                ],
+                hours: 'Lun-Dom: 8:00 AM - 7:00 PM',
+                address: 'Calle Bolívar 456, Centro Histórico',
+                phone: '+58 212 987-6543',
+                reviews: [
+                    {
+                        user: 'José Martínez',
+                        rating: 5,
+                        comment: 'Los postres son espectaculares. El cheesecake de café es mi favorito.',
+                        date: 'Hace 3 días'
+                    }
+                ]
+            }
+        };
+
+        // Función para generar estrellas
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            let starsHTML = '';
+
+            // Generar estrellas llenas
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+            }
+
+            // Completar con estrellas vacías hasta 5
+            const emptyStars = 5 - fullStars;
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+            }
+
+            return starsHTML + `<span class="ml-1 text-sm font-medium text-[var(--text-primary)]">${rating}</span>`;
+        }
+
+        // Función para generar tarjetas de favoritos
+        function generateFavoriteCard(cafeId, cafe) {
+            return `
+                <div class="bg-[var(--bg-surface)] rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out cursor-pointer">
+                    <img src="${cafe.image}" class="w-full h-40 object-cover" alt="Imagen de ${cafe.name}" loading="lazy">
+                    <div class="p-4">
+                        <div class="flex items-start justify-between mb-2">
+                            <h3 class="font-bold text-xl text-[var(--text-primary)] flex-1">${cafe.name}</h3>
+                            <button onclick="removeFromFavorites('${cafeId}'); event.stopPropagation();" class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center ml-2 transition-colors duration-200">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="text-sm text-[var(--text-secondary)] mt-1 mb-3">${cafe.description}</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <!-- Star Rating -->
+                                <div class="flex">
+                                    ${generateStars(cafe.rating)}
+                                </div>
+                                <!-- Tags -->
+                                <span class="bg-gray-700 text-[var(--text-secondary)] text-xs font-semibold px-2 py-0.5 rounded-full">${cafe.status}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 mt-3">
+                            <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3C7.02 3 3 7.02 3 12h3c0-3.31 2.69-6 6-6s6 2.69 6 6h3c0-4.98-4.02-9-9-9zm0 6c-1.66 0-3 1.34-3 3h3c0-1.66 1.34-3 3-3s3 1.34 3 3h3c0-3.31-2.69-6-6-6zm0 4.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
+                            </svg>
+                            <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.88 16.49c-1.16-.92-2.17-2.17-2.91-3.66l1.37-.62c.63 1.25 1.49 2.29 2.45 3.03l-.91 1.25zm4.72-2.27l-1.37.62c-.63-1.25-1.49-2.29-2.45-3.03l.91-1.25c1.16.92 2.17 2.17 2.91 3.66zM15.42 12.5a.75.75 0 01-.75-.75.75.75 0 01.75-.75.75.75 0 01.75.75.75.75 0 01-.75.75zM8.58 12.5a.75.75 0 01-.75-.75.75.75 0 01.75-.75.75.75 0 01.75.75.75.75 0 01-.75.75zM12 17.5a.75.75 0 01-.75-.75.75.75 0 01.75-.75.75.75 0 01.75.75.75.75 0 01-.75.75z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Función para cargar favoritos
+        function loadFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const favoritesList = document.getElementById('favoritesList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (favorites.length === 0) {
+                favoritesList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            // Generar tarjetas de favoritos
+            const favoritesHTML = favorites.map(favoriteId => {
+                const cafe = cafes[favoriteId];
+                if (cafe) {
+                    return `<div onclick="openCafeDetail('${favoriteId}')">${generateFavoriteCard(favoriteId, cafe)}</div>`;
+                }
+                return '';
+            }).join('');
+
+            favoritesList.innerHTML = favoritesHTML;
+        }
+
+        // Función para remover de favoritos
+        function removeFromFavorites(cafeId) {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const index = favorites.indexOf(cafeId);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                loadFavorites(); // Recargar la lista
+            }
+        }
+
+        // Función para ir a la página de detalle
+        function openCafeDetail(cafeId) {
+            localStorage.setItem('selectedCafe', cafeId);
+            window.location.href = 'Detalle.html';
+        }
+
+        // Función para ir al inicio
+        function goToInicio() {
+            window.location.href = 'Inicio.html';
+        }
+
+        // Función para alternar opciones de ordenamiento
+        function toggleSortOptions() {
+            // Aquí se podría implementar un menú de ordenamiento
+            alert('Funcionalidad de ordenamiento próximamente');
+        }
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFavorites();
+        });
+
+        // Escuchar cambios en localStorage (útil si se actualizan favoritos desde otra pestaña)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'favorites') {
+                loadFavorites();
+            }
+        });
+    </script>
+
+</body>
+</html>
