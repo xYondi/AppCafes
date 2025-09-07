@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Wifi
@@ -34,6 +38,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.coffeetrip.domain.model.CafeteriaDetalle
 import com.coffeetrip.ui.components.CafeteriaBottomSheetContainer
+import com.coffeetrip.ui.components.CafeteriaCard
 import com.coffeetrip.ui.components.DockNavigationBar
 import com.coffeetrip.ui.theme.CoffeeTripColors
 import com.coffeetrip.ui.theme.EstadoColors
@@ -65,6 +72,7 @@ fun FavoritosScreen(
     onNavigateToInicio: () -> Unit,
     onNavigateToMas: () -> Unit,
     onCafeteriaClick: (CafeteriaDetalle) -> Unit,
+    onMapaClick: () -> Unit,
     onCallClick: () -> Unit,
     onDirectionsClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -72,56 +80,108 @@ fun FavoritosScreen(
     viewModel: FavoritosViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val cafeteriaSeleccionada by viewModel.cafeteriaSeleccionada.collectAsState()
     
+    CafeteriaBottomSheetContainer(
+        cafeteriaDetalle = cafeteriaSeleccionada,
+        onDismiss = { viewModel.cerrarBottomSheet() },
+        onCallClick = { viewModel.llamarCafeteria() },
+        onDirectionsClick = { viewModel.obtenerDirecciones() },
+        onShareClick = { viewModel.compartirCafeteria() },
+        onToggleFavorite = { viewModel.toggleFavorito() }
+    ) {
+        FavoritosScreenContent(
+            uiState = uiState,
+            viewModel = viewModel,
+            onCafeteriaClick = onCafeteriaClick,
+            onMapaClick = onMapaClick,
+            onNavigateToInicio = onNavigateToInicio,
+            onNavigateToMas = onNavigateToMas,
+            onToggleFavorite = onToggleFavorite
+        )
+    }
+}
+
+@Composable
+private fun FavoritosScreenContent(
+    uiState: FavoritosUiState,
+    viewModel: FavoritosViewModel,
+    onCafeteriaClick: (CafeteriaDetalle) -> Unit,
+    onMapaClick: () -> Unit,
+    onNavigateToInicio: () -> Unit,
+    onNavigateToMas: () -> Unit,
+    onToggleFavorite: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val favoritosIds by viewModel.favoritosIds.collectAsState()
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = CoffeeTripColors.bgBase
+    ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Contenido principal
-        Column(
+            LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(CoffeeTripColors.bgBase)
-        ) {
-            // Header
+                    .padding(horizontal = 8.dp, vertical = 40.dp),
+                contentPadding = PaddingValues(
+                    start = 8.dp,
+                    end = 8.dp,
+                    top = 16.dp,
+                    bottom = 130.dp // espacio para el dock elevado
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
             FavoritosHeader(
-                onSortClick = { /* Implementar ordenamiento */ }
+                        onMapaClick = onMapaClick
             )
-            
-            // Contenido principal
-            Box(modifier = Modifier.weight(1f)) {
+                }
                 when {
                     uiState.isLoading -> {
-                        // Estado de carga
+                        item {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator(
-                                color = CoffeeTripColors.bgSurface,
-                                modifier = Modifier.size(48.dp)
+                                    color = CoffeeTripColors.bgSurface
                             )
                         }
                     }
-                    
+                    }
                     uiState.isEmpty -> {
-                        // Estado vacío
+                        item {
                         FavoritosEmptyState(
                             onExploreClick = onNavigateToInicio
                         )
                     }
-                    
+                    }
                     else -> {
-                        // Lista de favoritos
-                        FavoritosList(
-                            favoritos = uiState.favoritos,
-                            onCafeteriaClick = onCafeteriaClick,
-                            onRemoveFavorite = { cafeteriaId ->
-                                onToggleFavorite(cafeteriaId)
-                            }
-                        )
+                        items(uiState.favoritos) { cafeteriaDetalle ->
+                            CafeteriaCard(
+                                cafeteria = cafeteriaDetalle.cafeteria,
+                                onClick = { 
+                                    viewModel.seleccionarCafeteria(cafeteriaDetalle)
+                                },
+                                isGuardado = favoritosIds.contains(cafeteriaDetalle.cafeteria.id),
+                                onToggleGuardar = { viewModel.toggleFavorito(cafeteriaDetalle.cafeteria.id) }
+                            )
+                        }
                     }
                 }
             }
-            
-            // Barra de navegación
+
+            // Contenedor inferior con esquinas superiores redondeadas, fondo extendido y dock elevado
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                    .background(CoffeeTripColors.navbarBg)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
             DockNavigationBar(
                 currentRoute = "favoritos",
                 onNavigate = { route ->
@@ -130,8 +190,19 @@ fun FavoritosScreen(
                         "favoritos" -> { /* Ya estamos aquí */ }
                         "mas" -> onNavigateToMas()
                     }
-                }
-            )
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .padding(bottom = 14.dp)
+                )
+                Spacer(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(14.dp)
+                )
+            }
         }
     }
 }
@@ -141,18 +212,20 @@ fun FavoritosScreen(
  */
 @Composable
 private fun FavoritosHeader(
-    onSortClick: () -> Unit,
+    onMapaClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 32.dp)
-            .statusBarsPadding(),
+            .padding(start = 8.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
-        Column {
+        // Texto del header
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = "Favoritos",
                 fontSize = 32.sp,
@@ -167,26 +240,28 @@ private fun FavoritosHeader(
             )
         }
         
-        // Botón para ordenar
-        Card(
+        // Botón del mapa
+        Box(
             modifier = Modifier
                 .size(48.dp)
-                .clickable { onSortClick() },
-            shape = CircleShape,
-            colors = CardDefaults.cardColors(containerColor = CoffeeTripColors.bgSurface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.FilterList,
-                    contentDescription = "Ordenar",
-                    tint = CoffeeTripColors.bgBase,
-                    modifier = Modifier.size(24.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            CoffeeTripColors.accentBrown,
+                            CoffeeTripColors.activeBrown
+                        )
+                    )
                 )
-            }
+                .clickable { onMapaClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Map,
+                contentDescription = "Ver mapa",
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
@@ -282,196 +357,13 @@ private fun FavoritosList(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         items(favoritos) { cafeteriaDetalle ->
-            FavoritoCard(
-                cafeteriaDetalle = cafeteriaDetalle,
+            CafeteriaCard(
+                cafeteria = cafeteriaDetalle.cafeteria,
                 onClick = { onCafeteriaClick(cafeteriaDetalle) },
-                onRemoveClick = { onRemoveFavorite(cafeteriaDetalle.cafeteria.id) }
+                isGuardado = true, // Siempre true en favoritos
+                onToggleGuardar = { onRemoveFavorite(cafeteriaDetalle.cafeteria.id) }
             )
         }
     }
 }
 
-/**
- * Tarjeta individual de favorito
- */
-@Composable
-private fun FavoritoCard(
-    cafeteriaDetalle: CafeteriaDetalle,
-    onClick: () -> Unit,
-    onRemoveClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val cafeteria = cafeteriaDetalle.cafeteria
-    
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CoffeeTripColors.bgSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
-    ) {
-        Column {
-            // Imagen de la cafetería
-            Box {
-                AsyncImage(
-                    model = cafeteria.imagenUrl,
-                    contentDescription = "Imagen de ${cafeteria.nombre}",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                
-                // Botón para quitar de favoritos
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(12.dp)
-                        .size(32.dp)
-                        .clickable { onRemoveClick() },
-                    shape = CircleShape,
-                    colors = CardDefaults.cardColors(containerColor = Color.Red),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = "Quitar de favoritos",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            }
-            
-            // Información de la cafetería
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Nombre
-                Text(
-                    text = cafeteria.nombre,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = CoffeeTripColors.bgBase,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                // Descripción
-                Text(
-                    text = cafeteria.descripcion,
-                    fontSize = 14.sp,
-                    color = CoffeeTripColors.darkGray,
-                    lineHeight = 18.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                // Rating y estado
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Rating con estrellas
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        repeat(5) { index ->
-                            Icon(
-                                imageVector = Icons.Filled.Star,
-                                contentDescription = null,
-                                tint = if (index < cafeteria.calificacion.toInt()) IconColors.starIcon else IconColors.starIcon.copy(alpha = 0.3f),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                        Text(
-                            text = "${cafeteria.calificacion}",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = CoffeeTripColors.bgBase,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                    }
-                    
-                    // Estado
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = when (cafeteria.estado) {
-                                com.coffeetrip.domain.model.EstadoCafeteria.ABIERTO -> CoffeeTripColors.bgBase
-                                com.coffeetrip.domain.model.EstadoCafeteria.CERRANDO_PRONTO -> EstadoColors.cerrandoPronto
-                                com.coffeetrip.domain.model.EstadoCafeteria.CERRADO -> EstadoColors.cerrado
-                            }
-                        )
-                    ) {
-                        Text(
-                            text = when (cafeteria.estado) {
-                                com.coffeetrip.domain.model.EstadoCafeteria.ABIERTO -> "Abierto"
-                                com.coffeetrip.domain.model.EstadoCafeteria.CERRANDO_PRONTO -> "Cerrando"
-                                com.coffeetrip.domain.model.EstadoCafeteria.CERRADO -> "Cerrado"
-                            },
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = CoffeeTripColors.bgSurface,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-                
-                // Servicios
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (cafeteria.servicios.contains(com.coffeetrip.domain.model.ServicioCafeteria.WIFI)) {
-                        Icon(
-                            imageVector = Icons.Filled.Wifi,
-                            contentDescription = "WiFi",
-                            tint = CoffeeTripColors.darkGray,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    
-                    if (cafeteria.servicios.contains(com.coffeetrip.domain.model.ServicioCafeteria.PET_FRIENDLY)) {
-                        Icon(
-                            imageVector = Icons.Filled.Pets,
-                            contentDescription = "Pet Friendly",
-                            tint = CoffeeTripColors.darkGray,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.weight(1f))
-                    
-                    // Distancia
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.LocationOn,
-                            contentDescription = "Distancia",
-                            tint = CoffeeTripColors.darkGray,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = "${String.format("%.1f km", cafeteria.distancia)}",
-                            fontSize = 12.sp,
-                            color = CoffeeTripColors.darkGray,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-        }
-    }
-}

@@ -9,6 +9,7 @@ import com.coffeetrip.domain.usecase.ObtenerCafeteriasPopularesUseCase
 import com.coffeetrip.domain.model.Cafeteria
 import com.coffeetrip.domain.model.CafeteriaDetalle
 import com.coffeetrip.data.repository.CafeteriaDataProvider
+import com.coffeetrip.domain.repository.FavoritosRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -26,6 +28,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class InicioViewModel @Inject constructor(
     private val obtenerCafeteriasPopularesUseCase: ObtenerCafeteriasPopularesUseCase,
+    private val favoritosRepository: FavoritosRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -36,9 +39,12 @@ class InicioViewModel @Inject constructor(
     private val _cafeteriaSeleccionada: MutableStateFlow<CafeteriaDetalle?> = MutableStateFlow(null)
     val cafeteriaSeleccionada: StateFlow<CafeteriaDetalle?> = _cafeteriaSeleccionada.asStateFlow()
     
-    // Lista de IDs de cafeterías favoritas (simulando almacenamiento local)
-    private val _favoritosIds = MutableStateFlow(setOf<String>())
-    val favoritosIds: StateFlow<Set<String>> = _favoritosIds.asStateFlow()
+    // Flujo de favoritos desde el repositorio compartido
+    val favoritosIds: StateFlow<Set<String>> = favoritosRepository.obtenerFavoritos().stateIn(
+        scope = viewModelScope,
+        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        initialValue = emptySet()
+    )
 
     init {
         cargarCafeteriasPopulares()
@@ -70,8 +76,9 @@ class InicioViewModel @Inject constructor(
      */
     fun seleccionarCafeteria(cafeteria: Cafeteria) {
         viewModelScope.launch {
+            val esFavorito = favoritosRepository.esFavorito(cafeteria.id)
             val cafeteriaDetalle = CafeteriaDataProvider.getCafeteriaDetalle(cafeteria).copy(
-                esFavorito = _favoritosIds.value.contains(cafeteria.id)
+                esFavorito = esFavorito
             )
             _cafeteriaSeleccionada.value = cafeteriaDetalle
         }
@@ -90,15 +97,11 @@ class InicioViewModel @Inject constructor(
     fun toggleFavorito() {
         _cafeteriaSeleccionada.value?.let { cafeteriaDetalle ->
             val cafeteriaId = cafeteriaDetalle.cafeteria.id
-            val esFavorito = !cafeteriaDetalle.esFavorito
-            
-            if (esFavorito) {
-                _favoritosIds.value = _favoritosIds.value + cafeteriaId
-            } else {
-                _favoritosIds.value = _favoritosIds.value - cafeteriaId
+            viewModelScope.launch {
+                favoritosRepository.toggleFavorito(cafeteriaId)
+                val nuevoEstado = favoritosRepository.esFavorito(cafeteriaId)
+                _cafeteriaSeleccionada.value = cafeteriaDetalle.copy(esFavorito = nuevoEstado)
             }
-            
-            _cafeteriaSeleccionada.value = cafeteriaDetalle.copy(esFavorito = esFavorito)
         }
     }
     
@@ -106,18 +109,15 @@ class InicioViewModel @Inject constructor(
      * Alterna el estado de favorito de una cafetería por ID
      */
     fun toggleFavorito(cafeteriaId: String) {
-        val esFavorito = _favoritosIds.value.contains(cafeteriaId)
-        
-        if (esFavorito) {
-            _favoritosIds.value = _favoritosIds.value - cafeteriaId
-        } else {
-            _favoritosIds.value = _favoritosIds.value + cafeteriaId
-        }
-        
-        // Actualizar el bottom sheet si está abierto para esta cafetería
-        _cafeteriaSeleccionada.value?.let { cafeteriaDetalle ->
-            if (cafeteriaDetalle.cafeteria.id == cafeteriaId) {
-                _cafeteriaSeleccionada.value = cafeteriaDetalle.copy(esFavorito = !esFavorito)
+        viewModelScope.launch {
+            favoritosRepository.toggleFavorito(cafeteriaId)
+            
+            // Actualizar el bottom sheet si está abierto para esta cafetería
+            _cafeteriaSeleccionada.value?.let { cafeteriaDetalle ->
+                if (cafeteriaDetalle.cafeteria.id == cafeteriaId) {
+                    val nuevoEstado = favoritosRepository.esFavorito(cafeteriaId)
+                    _cafeteriaSeleccionada.value = cafeteriaDetalle.copy(esFavorito = nuevoEstado)
+                }
             }
         }
     }
@@ -126,7 +126,7 @@ class InicioViewModel @Inject constructor(
      * Verifica si una cafetería está en favoritos
      */
     fun esFavorito(cafeteriaId: String): Boolean {
-        return _favoritosIds.value.contains(cafeteriaId)
+        return favoritosIds.value.contains(cafeteriaId)
     }
 
     /**

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Pets
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -291,9 +293,9 @@ fun CafeteriaBottomSheetCollapsed(
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            imageVector = if (cafeteriaDetalle.esFavorito) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                            contentDescription = if (cafeteriaDetalle.esFavorito) "Quitar de guardados" else "Guardar",
-                            tint = if (cafeteriaDetalle.esFavorito) CoffeeTripColors.activeBrown else CoffeeTripColors.darkGray,
+                            imageVector = if (cafeteriaDetalle.esFavorito) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = if (cafeteriaDetalle.esFavorito) "Quitar de favoritos" else "Agregar a favoritos",
+                            tint = if (cafeteriaDetalle.esFavorito) Color.Red else CoffeeTripColors.darkGray,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -383,9 +385,9 @@ fun CafeteriaBottomSheetExpanded(
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
-                            imageVector = if (cafeteriaDetalle.esFavorito) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                            contentDescription = "Guardado",
-                            tint = if (cafeteriaDetalle.esFavorito) CoffeeTripColors.activeBrown else CoffeeTripColors.darkGray,
+                            imageVector = if (cafeteriaDetalle.esFavorito) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Favorito",
+                            tint = if (cafeteriaDetalle.esFavorito) Color.Red else CoffeeTripColors.darkGray,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -993,9 +995,9 @@ fun CafeteriaBottomSheetUnified(
                                 .size(40.dp)
                         ) {
                             Icon(
-                                imageVector = if (cafeteriaDetalle.esFavorito) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                                contentDescription = if (cafeteriaDetalle.esFavorito) "Quitar de guardados" else "Guardar",
-                                tint = if (cafeteriaDetalle.esFavorito) CoffeeTripColors.activeBrown else Color.White,
+                                imageVector = if (cafeteriaDetalle.esFavorito) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = if (cafeteriaDetalle.esFavorito) "Quitar de favoritos" else "Agregar a favoritos",
+                                tint = if (cafeteriaDetalle.esFavorito) Color.Red else Color.White,
                                 modifier = Modifier.size(24.dp)
                             )
                         }

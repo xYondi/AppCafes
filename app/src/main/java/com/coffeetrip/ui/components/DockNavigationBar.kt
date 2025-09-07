@@ -129,12 +129,12 @@ fun DockNavigationBar(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(start = 8.dp)
-                        .size(width = 140.dp, height = 56.dp)
+                        .size(width = 160.dp, height = 56.dp)
                         .clip(RoundedCornerShape(9999.dp))
                         .background(CoffeeTripColors.pillBackground)
                         .clickable { onNavigate("favoritos") }
-                        .padding(horizontal = 18.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(

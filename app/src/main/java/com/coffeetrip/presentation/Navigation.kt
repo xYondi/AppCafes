@@ -72,6 +72,9 @@ fun AppNavigation(
                     // TODO: Navegar a pantalla de detalle cuando esté implementada
                     // navController.navigate("detalle/${cafeteriaDetalle.cafeteria.id}")
                 },
+                onMapaClick = {
+                    navController.navigate("mapa")
+                },
                 onCallClick = {
                     // TODO: Implementar funcionalidad de llamada
                 },

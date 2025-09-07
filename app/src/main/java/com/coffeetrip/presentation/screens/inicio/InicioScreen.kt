@@ -70,6 +70,7 @@ fun InicioScreen(
     ) {
         InicioScreenContent(
             uiState = uiState,
+            viewModel = viewModel,
             onCafeteriaClick = { cafeteria -> 
                 viewModel.seleccionarCafeteria(cafeteria)
             },
@@ -82,11 +83,13 @@ fun InicioScreen(
 @Composable
 private fun InicioScreenContent(
     uiState: InicioUiState,
+    viewModel: InicioViewModel,
     onCafeteriaClick: (com.coffeetrip.domain.model.Cafeteria) -> Unit,
     onMapaClick: () -> Unit,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val favoritosIds by viewModel.favoritosIds.collectAsState()
     Surface(
         modifier = modifier.fillMaxSize(),
         color = CoffeeTripColors.bgBase
@@ -175,7 +178,9 @@ private fun InicioScreenContent(
                         items((uiState as InicioUiState.Success).cafeterias) { cafeteria ->
                             CafeteriaCard(
                                 cafeteria = cafeteria,
-                                onClick = { onCafeteriaClick(cafeteria) }
+                                onClick = { onCafeteriaClick(cafeteria) },
+                                isGuardado = favoritosIds.contains(cafeteria.id),
+                                onToggleGuardar = { viewModel.toggleFavorito(cafeteria.id) }
                             )
                         }
                     }

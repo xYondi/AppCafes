@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -191,7 +192,7 @@ fun CafeteriaCard(
                 }
             }
             
-            // Icono de guardar en la esquina superior derecha (contorno por defecto)
+            // Icono de guardar en la esquina superior derecha (corazón con trazo)
             IconButton(
                 onClick = onToggleGuardar,
                 modifier = Modifier
@@ -200,9 +201,9 @@ fun CafeteriaCard(
                     .size(36.dp)
             ) {
                 Icon(
-                    imageVector = if (isGuardado) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                    contentDescription = if (isGuardado) "Quitar de guardados" else "Guardar",
-                    tint = Color(0xFF440F0E),
+                    imageVector = if (isGuardado) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = if (isGuardado) "Quitar de favoritos" else "Agregar a favoritos",
+                    tint = if (isGuardado) Color.Red else Color(0xFF440F0E),
                     modifier = Modifier.size(32.dp)
                 )
             }
